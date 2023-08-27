@@ -57,7 +57,7 @@ class LoraAprsKissTnc(LoRa):
     server = None
 
     # init has LoRa APRS default config settings - might be initialized different when creating object with parameters
-    def __init__(self, queue, server, frequency=433775000, preamble=8, spreadingFactor=12, bandwidth=BW.BW125,
+    def __init__(self, queue, server, frequency=915000000, preamble=8, spreadingFactor=12, bandwidth=BW.BW125,
                  codingrate=5, crc = True, appendSignalReport = True, paSelect = 1, outputPower = 15, sync_word = 0x12, verbose=False):
     # Init SX127x
         if config.disp_en:
