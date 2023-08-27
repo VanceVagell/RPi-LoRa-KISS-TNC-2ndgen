@@ -130,18 +130,9 @@ class LoraAprsKissTnc(LoRa):
                     if not self.queue.empty():
                         try:
                             data = self.queue.get(block=False)
-                            #if self.aprs_data_type(data) == self.DATA_TYPE_THIRD_PARTY:
-                                # remove third party thing
-                                #data = data[data.find(self.DATA_TYPE_THIRD_PARTY) + 1:]
-                            if config.TX_OE_Style:
-                                data = self.LORA_APRS_HEADER + data
-                                logf("LoRa TX OE Syle packet: " + repr(data))
-                                if config.disp_en:
-                                   lcd("LoRa TX OE Syle packet: " + repr(data))
-                            else:
-                                logf("LoRa TX Standard AX25 packet: " + repr(data))
-                                if config.disp_en:
-                                   lcd("LoRa TX Standard AX25 packet: " + repr(data))
+                            logf("LoRa TX Standard AX25 packet: " + repr(data))
+                            if config.disp_en:
+                               lcd("LoRa TX Standard AX25 packet: " + repr(data))
 
                             self.transmit(data)
                         except QueueEmpty:
@@ -197,6 +188,10 @@ class LoraAprsKissTnc(LoRa):
         self.set_mode(MODE.RXCONT)
 
     def transmit(self, data):
+        while self.get_mode() != MODE.RXCONT:
+            time.sleep(0.1)
+            continue # wait until prior TX is done.
+ 
         self.write_payload([c for c in data])
         self.set_dio_mapping([1, 0, 0, 0, 0, 0])
         self.set_mode(MODE.TX)

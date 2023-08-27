@@ -34,7 +34,7 @@ client_address = []
 RECV_BUFFER_LENGTH = 1024
 
 class KissServer(Thread):
-    '''TCP Server to be connected by the APRS digipeater'''
+    '''TCP Server to be connected to by a KISS client'''
 
     txQueue = None
 
@@ -53,9 +53,16 @@ class KissServer(Thread):
     def run(self):
         global client_address
         parser = SerialParser(self.queue_frame)
-        # A couple long packets that will require segmentation (uncomment to test)
-        # self.queue_frame(b'\xc0\x00\x96\xach\xa0@@\xe6\x96\xach\xa0@@e\x92\xcf\x96\xach\xa0@@r\x96\xach\xa0@@t\x07\x06\xcc\x01\x02\x05\x01NKV4P-9 KY4ZC-9 Z4ZC09 6.0.21.40\r\x01NKV4P-9 KD4UNX-9 ZUNX09 6.0.21.40\r\x01NKV4P-9 K4LBX-9 ZLBX09 6.0.21.40\r\x01NKV4P-9 NC4AU-9 Z4AU09 6.0.21.40\r\x01NKV4P-9 W3KHG-9 ZKHG09 6.0.21.40\r\x01NKV4P-9 KO4IBM-9 ZIBM09 6.0.21.40\r\x01NKV4P-9 KW4KZ-9 Z4KZ09 6.0.21\xc0')
+
+        # test packets (uncomment to test tx)
+
+        # 1. Largest packet possible (pre-segmented into 201 bytes)
+        # self.queue_frame(b'\xc0\x00\x96\xach\xa0@@\xe6\x96\xach\xa0@@e\x92\xcf\x96\xach\xa0@@r\x96\xach\xa0@@t\x07\x06\xcc\x01\x02\x05\x01NKV4P-9 KY4ZC-9 Z4ZC09 6.0.21.40\r\x01NKV4P-9 KD4UNX-9 ZUNX09 6.0.21.40\r\x01NKV4P-9 K4LBX-9 ZLBX09 6.0.21.40\r\x01NKV4P-9 NC4AU-9 Z4AU09 6.0.21.40\r\x01NKV4P-9 W3KHG-9 ZKHG09 6.0\xc0')
+
+        # 2. Long packets that will need to be segmented
+        self.queue_frame(b'\xc0\x00\x96\xach\xa0@@\xe6\x96\xach\xa0@@e\x92\xcf\x96\xach\xa0@@r\x96\xach\xa0@@t\x07\x06\xcc\x01\x02\x05\x01NKV4P-9 KY4ZC-9 Z4ZC09 6.0.21.40\r\x01NKV4P-9 KD4UNX-9 ZUNX09 6.0.21.40\r\x01NKV4P-9 K4LBX-9 ZLBX09 6.0.21.40\r\x01NKV4P-9 NC4AU-9 Z4AU09 6.0.21.40\r\x01NKV4P-9 W3KHG-9 ZKHG09 6.0.21.40\r\x01NKV4P-9 KO4IBM-9 ZIBM09 6.0.21.40\r\x01NKV4P-9 KW4KZ-9 Z4KZ09 6.0.21\xc0')
         # self.queue_frame(b'\xc0\x00\x96\xach\xa0@@\xe4\x96\xach\xa0@@g<\xcf\x96\xach\xa0@@t\x96\xach\xa0@@r\x07\x04\x9fV\xce\x05\x01DKV4P-10 KV4P If you do want to play with Lora I recommend the pi bonnet linked on the wiki, just because the libraries for interfacing are chipset specific and you can save yourself effort tracking down the right way to interface\r\xc0')
+
         while True:
             self.connection = None
             self.connection, client_address = self.socket.accept()
@@ -96,14 +103,12 @@ class KissServer(Thread):
         return segments
 
     def queue_frame(self, frame, verbose=True):
+        global client_address
         try:
             logf("Received from IP: "+str(client_address[0])+" KISS Frame: "+repr(frame))
-        except Exception:
-            logf("Exception in queue_frame.")
-        if config.TX_OE_Style:
-            decoded_data = KissHelper.decode_kiss_OE(frame)
-        else:
-            decoded_data = KissHelper.decode_kiss_AX25(frame)
+        except Exception as e:
+            logf("Exception in queue_frame: " + repr(e))
+        decoded_data = KissHelper.decode_kiss_AX25(frame)
         #logf("Decapsulated Kiss Frame :"+ repr(decoded_data))
 
         # subdivide any packets that are too large into <255 bytes to fit in LoRa module tx register
@@ -118,45 +123,14 @@ class KissServer(Thread):
         global peer
         LORA_APRS_HEADER = b"<\xff\x01"
         # remove LoRa-APRS header if present
-        if data[0:len(LORA_APRS_HEADER)] == LORA_APRS_HEADER:
-            data = data[len(LORA_APRS_HEADER):]
-            logf("\033[95mOE_Style header found!\033[0m")
-            try:
-                encoded_data = KissHelper.encode_kiss_OE(data,signalreport)
-            except Exception as e:
-                logf("KISS encoding went wrong (exception while parsing)")
-                traceback.print_tb(e.__traceback__)
-                encoded_data = None
-        else:
-            logf("\033[94mNo OE_Style header found, trying standard AX25 decoding...\033[0m")
-            try:
-                encoded_data = KissHelper.encode_kiss_AX25(data,signalreport)
-            except Exception as e:
-                logf("KISS encoding went wrong (exception while parsing)")
-                traceback.print_tb(e.__traceback__)
-                encoded_data = None
+        logf("\033[94mTrying standard AX25 decoding...\033[0m")
+        try:
+            encoded_data = KissHelper.encode_kiss_AX25(data,signalreport)
+        except Exception as e:
+            logf("KISS encoding went wrong (exception while parsing)")
+            traceback.print_tb(e.__traceback__)
+            encoded_data = None
         if encoded_data != None:
             if self.connection:
                 logf("Sending to ip: " + client_address[0] + " port:" + str(client_address[1]) + " Frame: " + repr(encoded_data))
                 self.connection.sendall(encoded_data)
-
-
-if __name__ == '__main__':
-    '''Test program'''
-    import time
-    from multiprocessing import Queue
-
-    TCP_HOST = "0.0.0.0"
-    TCP_PORT = 10001
-
-    # frames to be sent go here
-    KissQueue = Queue()
-
-    server = KissServer(KissQueue,TCP_HOST, TCP_PORT)
-    server.setDaemon(True)
-    server.start()
-
-    #server.send(b"\xc0\x00\x82\xa0\xa4\xa6@@`\x9e\x8ar\xa8\x96\x90q\x03\xf0!4725.51N/00939.86E[322/002/A=001306 Batt=3.99V\xc0",{"level":0, "snr":0},'Level:-115dBm, SNR:0dB')
-    server.send(b'<\xff\x01IZ7BOJ-12>APRS::OE1ACM-29: No GPS-Fix  Batt=0.00V {19','Level:-115dBm, SNR:0dB')
-    data = KissQueue.get()
-    print("Received KISS frame:" + repr(data))
