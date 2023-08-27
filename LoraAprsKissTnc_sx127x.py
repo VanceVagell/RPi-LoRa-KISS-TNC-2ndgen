@@ -189,7 +189,7 @@ class LoraAprsKissTnc(LoRa):
 
     def transmit(self, data):
         while self.get_mode() != MODE.RXCONT:
-            time.sleep(0.1)
+            time.sleep(0.01) # 10ms
             continue # wait until prior TX is done.
  
         self.write_payload([c for c in data])
