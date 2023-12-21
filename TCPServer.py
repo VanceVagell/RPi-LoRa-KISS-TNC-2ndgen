@@ -60,7 +60,7 @@ class KissServer(Thread):
         # self.queue_frame(b'\xc0\x00\x96\xach\xa0@@\xe6\x96\xach\xa0@@e\x92\xcf\x96\xach\xa0@@r\x96\xach\xa0@@t\x07\x06\xcc\x01\x02\x05\x01NKV4P-9 KY4ZC-9 Z4ZC09 6.0.21.40\r\x01NKV4P-9 KD4UNX-9 ZUNX09 6.0.21.40\r\x01NKV4P-9 K4LBX-9 ZLBX09 6.0.21.40\r\x01NKV4P-9 NC4AU-9 Z4AU09 6.0.21.40\r\x01NKV4P-9 W3KHG-9 ZKHG09 6.0\xc0')
 
         # 2. Long packets that will need to be segmented
-        self.queue_frame(b'\xc0\x00\x96\xach\xa0@@\xe6\x96\xach\xa0@@e\x92\xcf\x96\xach\xa0@@r\x96\xach\xa0@@t\x07\x06\xcc\x01\x02\x05\x01NKV4P-9 KY4ZC-9 Z4ZC09 6.0.21.40\r\x01NKV4P-9 KD4UNX-9 ZUNX09 6.0.21.40\r\x01NKV4P-9 K4LBX-9 ZLBX09 6.0.21.40\r\x01NKV4P-9 NC4AU-9 Z4AU09 6.0.21.40\r\x01NKV4P-9 W3KHG-9 ZKHG09 6.0.21.40\r\x01NKV4P-9 KO4IBM-9 ZIBM09 6.0.21.40\r\x01NKV4P-9 KW4KZ-9 Z4KZ09 6.0.21\xc0')
+        # self.queue_frame(b'\xc0\x00\x96\xach\xa0@@\xe6\x96\xach\xa0@@e\x92\xcf\x96\xach\xa0@@r\x96\xach\xa0@@t\x07\x06\xcc\x01\x02\x05\x01NKV4P-9 KY4ZC-9 Z4ZC09 6.0.21.40\r\x01NKV4P-9 KD4UNX-9 ZUNX09 6.0.21.40\r\x01NKV4P-9 K4LBX-9 ZLBX09 6.0.21.40\r\x01NKV4P-9 NC4AU-9 Z4AU09 6.0.21.40\r\x01NKV4P-9 W3KHG-9 ZKHG09 6.0.21.40\r\x01NKV4P-9 KO4IBM-9 ZIBM09 6.0.21.40\r\x01NKV4P-9 KW4KZ-9 Z4KZ09 6.0.21\xc0')
         # self.queue_frame(b'\xc0\x00\x96\xach\xa0@@\xe4\x96\xach\xa0@@g<\xcf\x96\xach\xa0@@t\x96\xach\xa0@@r\x07\x04\x9fV\xce\x05\x01DKV4P-10 KV4P If you do want to play with Lora I recommend the pi bonnet linked on the wiki, just because the libraries for interfacing are chipset specific and you can save yourself effort tracking down the right way to interface\r\xc0')
 
         while True:
